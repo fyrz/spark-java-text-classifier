@@ -14,11 +14,40 @@ import org.fyrz.textclassifier.tokenizer.TextAnalyzer;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
 public class NaiveBayesClassifier {
+
+  static class LabeledTextToRDDTransformerFunction implements Function<String, LabeledPoint>, Serializable {
+
+    final HashingTF hashingTF = new HashingTF(10000);
+
+    @Override
+    public LabeledPoint call(String s) throws Exception {
+      String[] parts = s.split("[|]{3}");
+      Double label = Double.valueOf(parts[0]);
+
+      List<String> tokenList = new ArrayList<>();
+      TextAnalyzer sTextAnalyzer = new TextAnalyzer();
+      Reader reader = new StringReader(s);
+      try {
+        TokenStream tokenStream = sTextAnalyzer.tokenStream("contents", reader);
+        CharTermAttribute term = tokenStream.getAttribute(CharTermAttribute.class);
+        tokenStream.reset();
+        while (tokenStream.incrementToken()) {
+          tokenList.add(term.toString());
+        }
+      } catch (IOException e) {
+        // TODO handle java.io.IOException
+      }
+      return new LabeledPoint(label, hashingTF.transform(tokenList));
+    }
+  }
+
+
   public static void main(String[] args) {
     final String path = "/vagrant/20_newsgroups/out";
 
@@ -29,36 +58,24 @@ public class NaiveBayesClassifier {
     double[] splitRatios = {0.7d, 0.3d};
     JavaRDD<String>[] splitData = rawData.randomSplit(splitRatios, 42l);
 
-    final HashingTF hashingTF = new HashingTF(10000);
+    JavaRDD<LabeledPoint> trainingData = splitData[0].map(
+        new LabeledTextToRDDTransformerFunction()).cache();
 
+    final NaiveBayesModel model = NaiveBayes.train(trainingData.rdd());
+    //model.save(sc.sc(), "model.txt");
 
-    JavaRDD<LabeledPoint> labeledPointJavaRDD = splitData[0].map(
-        new Function<String, LabeledPoint>() {
-          public LabeledPoint call(String s) {
+    JavaRDD<LabeledPoint> testData = splitData[0].map(
+        new LabeledTextToRDDTransformerFunction()).cache();
 
-            String[] parts = s.split("[|]{3}");
-            Double label = Double.valueOf(parts[0]);
+    testData.map(new Function<LabeledPoint, String>(){
+      @Override
+      public String call(LabeledPoint labeledPoint) throws Exception {
+        return String.format("%f, expected: %f",
+            model.predict(labeledPoint.features()),
+            labeledPoint.label());
+      }
+    }).saveAsTextFile("out.txt");
 
-            List<String> tokenList = new ArrayList<>();
-            TextAnalyzer sTextAnalyzer = new TextAnalyzer();
-            Reader reader = new StringReader(s);
-            try {
-              TokenStream tokenStream = sTextAnalyzer.tokenStream("contents", reader);
-              CharTermAttribute term = tokenStream.getAttribute(CharTermAttribute.class);
-              tokenStream.reset();
-              while (tokenStream.incrementToken()) {
-                tokenList.add(term.toString());
-              }
-            } catch (IOException e) {
-              // TODO handle java.io.IOException
-            }
-
-            return new LabeledPoint(label, hashingTF.transform(tokenList));
-          }
-        }).cache();
-
-    NaiveBayesModel model = NaiveBayes.train(labeledPointJavaRDD.rdd());
-    model.save(sc.sc(), "model.txt");
     sc.close();
   }
 }

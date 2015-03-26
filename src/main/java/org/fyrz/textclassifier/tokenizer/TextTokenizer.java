@@ -26,7 +26,7 @@ public class TextTokenizer extends Tokenizer {
   public static class TextTokenizerFunction extends AbstractFunction1<String, Seq<String>> implements Serializable {
     @Override
     public Seq<String> apply(final String s) {
-      List<String> tokenlist = new ArrayList<String>();
+      List<String> tokenList = new ArrayList<String>();
       TextAnalyzer sTextAnalyzer = new TextAnalyzer();
       Reader reader = new StringReader(s);
       try {
@@ -35,12 +35,12 @@ public class TextTokenizer extends Tokenizer {
 
         tokenStream.reset();
         while (tokenStream.incrementToken()) {
-          tokenlist.add(term.toString());
+          tokenList.add(term.toString());
         }
       } catch (IOException e) {
         // TODO handle java.io.IOException
       }
-      return JavaConversions.asScalaBuffer(tokenlist);
+      return JavaConversions.asScalaBuffer(tokenList);
     }
   }
 }
