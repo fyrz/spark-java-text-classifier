@@ -14,3 +14,4 @@ function validate_spark_home {
     fi
   fi
 }
+validate_spark_home

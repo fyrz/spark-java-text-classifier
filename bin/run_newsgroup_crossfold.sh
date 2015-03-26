@@ -3,7 +3,6 @@
 script_dir="$(dirname "$0")"
 "$script_dir/validate_env.sh"
 
-validate_spark_home
 # Use spark-submit to run your application
 $SPARK_HOME/bin/spark-submit \
 	--class "org.fyrz.textclassifier.NewsGroupCrossValidation" \
