@@ -8,7 +8,10 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.mllib.classification.NaiveBayes;
 import org.apache.spark.mllib.classification.NaiveBayesModel;
+import org.apache.spark.mllib.feature.ChiSqSelector;
+import org.apache.spark.mllib.feature.ChiSqSelectorModel;
 import org.apache.spark.mllib.feature.HashingTF;
+import org.apache.spark.mllib.feature.IDF;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.fyrz.textclassifier.tokenizer.LowercaseWhitespaceTokenizer;
 import org.fyrz.textclassifier.tokenizer.NgramTokenizer;
@@ -62,7 +65,18 @@ public class NaiveBayesClassifier {
     JavaRDD<LabeledPoint> trainingData = splitData[0].map(
         new LabeledTextToRDDTransformerFunction()).cache();
 
-    final NaiveBayesModel model = NaiveBayes.train(trainingData.rdd());
+    ChiSqSelector chiSqSelector = new ChiSqSelector(500);
+    final ChiSqSelectorModel chiSqSelectorModel = chiSqSelector.fit(trainingData.rdd());
+
+    // reduce feature set
+    JavaRDD<LabeledPoint> reducedTrainingData = trainingData.map(new Function<LabeledPoint, LabeledPoint>() {
+      @Override
+      public LabeledPoint call(LabeledPoint labeledPoint) throws Exception {
+        return new LabeledPoint(labeledPoint.label(), chiSqSelectorModel.transform(labeledPoint.features()));
+      }
+    });
+
+    final NaiveBayesModel model = NaiveBayes.train(reducedTrainingData.rdd());
 
     JavaRDD<LabeledPoint> testData = splitData[0].map(
         new LabeledTextToRDDTransformerFunction()).cache();
