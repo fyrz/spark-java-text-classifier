@@ -1,11 +1,25 @@
 #!/bin/ruby
 # -*- encoding : utf-8 -*-
 
+#####################################################################################
+#
+# Script to turn 20_newsgroups corpus into processable representation
+# Reference: http://qwone.com/~jason/20Newsgroups/
+#
+# Resulting files will be called "labeled_index" and "out"
+# - "labeled_index" includes labels with respective ids
+# - "out" contains data blocks with id, text pairs separated by three pipes.
+#
+# Prerequisites:
+# Newsgroups files must be converted to UTF-8 using `recode ISO-8859-1..UTF-8`
+# or a different mechanism to transform encodings.
+#
+#####################################################################################
+
 require 'pathname'
 require 'set'
 
-# prepare newsgroup files first with:
-# recode ISO-8859-1..UTF-8
+
 
 def readContents(filename)
   file = File.open(filename)
