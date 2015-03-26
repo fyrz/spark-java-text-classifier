@@ -6,7 +6,7 @@ script_dir="$(dirname "$0")"
 validate_spark_home
 # Use spark-submit to run your application
 $SPARK_HOME/bin/spark-submit \
-	--class "org.fyrz.textclassifier.NewsGroupClassifier" \
+	--class "org.fyrz.textclassifier.NaiveBayesClassifier" \
 	--master local[4] \
 	build/libs/spark-java-text-classifier-0.1-all.jar
 
