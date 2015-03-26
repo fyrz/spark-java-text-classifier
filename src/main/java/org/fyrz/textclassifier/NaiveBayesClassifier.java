@@ -54,8 +54,11 @@ public class NaiveBayesClassifier {
             }
 
             return new LabeledPoint(label, hashingTF.transform(tokenList));
-          }}).cache();
+          }
+        }).cache();
 
-          NaiveBayesModel model = NaiveBayes.train(labeledPointJavaRDD.rdd());
-        }
+    NaiveBayesModel model = NaiveBayes.train(labeledPointJavaRDD.rdd());
+    model.save(sc.sc(), "model.txt");
+    sc.close();
   }
+}
