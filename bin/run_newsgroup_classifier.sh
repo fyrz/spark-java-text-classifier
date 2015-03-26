@@ -18,7 +18,7 @@ function validate_spark_home {
 validate_spark_home
 # Use spark-submit to run your application
 $SPARK_HOME/bin/spark-submit \
-	--class "org.spark.examples.newsgroupclassifier.NewsGroupClassifier" \
+	--class "org.fyrz.textclassifier.NewsGroupClassifier" \
 	--master local[4] \
 	build/libs/spark-newsgroup-classifier-0.1-all.jar
 
