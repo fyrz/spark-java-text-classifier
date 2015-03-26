@@ -23,7 +23,7 @@ public class TextTokenizer extends Tokenizer {
     return new TextTokenizerFunction();
   }
 
-  static class TextTokenizerFunction extends AbstractFunction1<String, Seq<String>> implements Serializable {
+  public static class TextTokenizerFunction extends AbstractFunction1<String, Seq<String>> implements Serializable {
     @Override
     public Seq<String> apply(final String s) {
       List<String> tokenlist = new ArrayList<String>();
