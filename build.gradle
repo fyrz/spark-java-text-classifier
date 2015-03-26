@@ -51,8 +51,8 @@ configure(allprojects) {
 }
 
 dependencies {
-    provided("org.apache.fyrz:fyrz-core_$apacheSparkScalaVersion:$apacheSparkVersion")
-    provided("org.apache.fyrz:fyrz-mllib_$apacheSparkScalaVersion:$apacheSparkVersion")
+    provided("org.apache.spark:spark-core_$apacheSparkScalaVersion:$apacheSparkVersion")
+    provided("org.apache.spark:spark-mllib_$apacheSparkScalaVersion:$apacheSparkVersion")
 
     provided("org.slf4j:slf4j-api:$slf4jVersion")
     provided("org.slf4j:slf4j-simple:$slf4jVersion")
