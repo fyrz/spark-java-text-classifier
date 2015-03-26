@@ -73,8 +73,8 @@ dependencies {
 shadowJar {
     zip64 true
     dependencies {
-        exclude(dependency("org.apache.fyrz:fyrz-core_$apacheSparkScalaVersion:$apacheSparkVersion"))
-        exclude(dependency("org.apache.fyrz:fyrz-mllib_$apacheSparkScalaVersion:$apacheSparkVersion"))
+        exclude(dependency("org.apache.spark:spark-core_$apacheSparkScalaVersion:$apacheSparkVersion"))
+        exclude(dependency("org.apache.spark:spark-mllib_$apacheSparkScalaVersion:$apacheSparkVersion"))
     }
 }
 // Fix test classpath issues in IDEA
