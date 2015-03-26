@@ -18,7 +18,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.fyrz.textclassifier.beans.Document;
 import org.fyrz.textclassifier.beans.LabeledDocument;
-import org.fyrz.textclassifier.tokenizer.TextTokenizer;
+import org.fyrz.textclassifier.tokenizer.SparkLuceneTokenizer;
 
 import java.io.IOException;
 
@@ -55,7 +55,7 @@ public class NewsGroupCrossValidation {
 
     DataFrame trainingData = jsql.createDataFrame(labeledData, LabeledDocument.class);
 
-    Tokenizer tokenizer = new TextTokenizer().
+    Tokenizer tokenizer = new SparkLuceneTokenizer().
         setInputCol("text").
         setOutputCol("words");
     HashingTF hashingTF = new HashingTF()

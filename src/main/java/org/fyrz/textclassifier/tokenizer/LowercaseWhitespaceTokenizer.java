@@ -9,7 +9,7 @@ import org.apache.lucene.util.Version;
 
 import java.io.Reader;
 
-public class TextAnalyzer extends Analyzer {
+public class LowercaseWhitespaceTokenizer extends Analyzer {
 
   @Override
   protected TokenStreamComponents createComponents(final String fieldName, final Reader reader) {

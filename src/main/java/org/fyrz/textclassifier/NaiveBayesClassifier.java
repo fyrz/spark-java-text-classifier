@@ -10,7 +10,7 @@ import org.apache.spark.mllib.classification.NaiveBayes;
 import org.apache.spark.mllib.classification.NaiveBayesModel;
 import org.apache.spark.mllib.feature.HashingTF;
 import org.apache.spark.mllib.regression.LabeledPoint;
-import org.fyrz.textclassifier.tokenizer.TextAnalyzer;
+import org.fyrz.textclassifier.tokenizer.LowercaseWhitespaceTokenizer;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -31,10 +31,10 @@ public class NaiveBayesClassifier {
       Double label = Double.valueOf(parts[0]);
 
       List<String> tokenList = new ArrayList<>();
-      TextAnalyzer sTextAnalyzer = new TextAnalyzer();
+      LowercaseWhitespaceTokenizer sLowercaseWhitespaceTokenizer = new LowercaseWhitespaceTokenizer();
       Reader reader = new StringReader(s);
       try {
-        TokenStream tokenStream = sTextAnalyzer.tokenStream("contents", reader);
+        TokenStream tokenStream = sLowercaseWhitespaceTokenizer.tokenStream("contents", reader);
         CharTermAttribute term = tokenStream.getAttribute(CharTermAttribute.class);
         tokenStream.reset();
         while (tokenStream.incrementToken()) {
@@ -51,7 +51,7 @@ public class NaiveBayesClassifier {
   public static void main(String[] args) {
     final String path = "/vagrant/20_newsgroups/out";
 
-    SparkConf conf = new SparkConf().setAppName("Newsgroup classifier.");
+    SparkConf conf = new SparkConf().setAppName("Naive bayes classifier.");
     JavaSparkContext sc = new JavaSparkContext(conf);
 
     JavaRDD<String> rawData = sc.textFile(path).cache();
@@ -62,7 +62,6 @@ public class NaiveBayesClassifier {
         new LabeledTextToRDDTransformerFunction()).cache();
 
     final NaiveBayesModel model = NaiveBayes.train(trainingData.rdd());
-    //model.save(sc.sc(), "model.txt");
 
     JavaRDD<LabeledPoint> testData = splitData[0].map(
         new LabeledTextToRDDTransformerFunction()).cache();
@@ -70,7 +69,7 @@ public class NaiveBayesClassifier {
     testData.map(new Function<LabeledPoint, String>(){
       @Override
       public String call(LabeledPoint labeledPoint) throws Exception {
-        return String.format("%f, expected: %f",
+        return String.format("retrieved %f, expected: %f",
             model.predict(labeledPoint.features()),
             labeledPoint.label());
       }

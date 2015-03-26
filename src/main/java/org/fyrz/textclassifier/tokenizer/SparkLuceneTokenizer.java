@@ -16,7 +16,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TextTokenizer extends Tokenizer {
+public class SparkLuceneTokenizer extends Tokenizer {
 
   @Override
   public Function1<String, Seq<String>> createTransformFunc(final ParamMap paramMap) {
@@ -27,10 +27,10 @@ public class TextTokenizer extends Tokenizer {
     @Override
     public Seq<String> apply(final String s) {
       List<String> tokenList = new ArrayList<String>();
-      TextAnalyzer sTextAnalyzer = new TextAnalyzer();
+      LowercaseWhitespaceTokenizer lowercaseWhitespaceTokenizer = new LowercaseWhitespaceTokenizer();
       Reader reader = new StringReader(s);
       try {
-        TokenStream tokenStream = sTextAnalyzer.tokenStream("contents", reader);
+        TokenStream tokenStream = lowercaseWhitespaceTokenizer.tokenStream("contents", reader);
         CharTermAttribute term = tokenStream.getAttribute(CharTermAttribute.class);
 
         tokenStream.reset();
