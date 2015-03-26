@@ -11,6 +11,7 @@ import org.apache.spark.mllib.classification.NaiveBayesModel;
 import org.apache.spark.mllib.feature.HashingTF;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.fyrz.textclassifier.tokenizer.LowercaseWhitespaceTokenizer;
+import org.fyrz.textclassifier.tokenizer.NgramTokenizer;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -31,10 +32,10 @@ public class NaiveBayesClassifier {
       Double label = Double.valueOf(parts[0]);
 
       List<String> tokenList = new ArrayList<>();
-      LowercaseWhitespaceTokenizer sLowercaseWhitespaceTokenizer = new LowercaseWhitespaceTokenizer();
+      NgramTokenizer ngramTokenizer = new NgramTokenizer();
       Reader reader = new StringReader(s);
       try {
-        TokenStream tokenStream = sLowercaseWhitespaceTokenizer.tokenStream("contents", reader);
+        TokenStream tokenStream = ngramTokenizer.tokenStream("contents", reader);
         CharTermAttribute term = tokenStream.getAttribute(CharTermAttribute.class);
         tokenStream.reset();
         while (tokenStream.incrementToken()) {
