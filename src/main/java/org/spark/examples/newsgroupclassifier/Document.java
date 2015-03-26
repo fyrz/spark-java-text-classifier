@@ -4,18 +4,15 @@ import java.io.Serializable;
 
 
 public class Document
-    implements Serializable
-{
-    public final String text;
+    implements Serializable {
+  public final String text;
 
-    public Document(final String pText)
-    {
-        text = pText;
-    }
+  public Document(final String pText) {
+    text = pText;
+  }
 
 
-    public String getText()
-    {
-        return text;
-    }
+  public String getText() {
+    return text;
+  }
 }
