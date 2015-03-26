@@ -85,7 +85,7 @@ public class NaiveBayesClassifier {
       @Override
       public String call(LabeledPoint labeledPoint) throws Exception {
         return String.format("retrieved %f, expected: %f",
-            model.predict(labeledPoint.features()),
+            model.predict(chiSqSelectorModel.transform(labeledPoint.features())),
             labeledPoint.label());
       }
     }).saveAsTextFile("out.txt");
