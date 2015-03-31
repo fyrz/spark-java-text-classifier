@@ -6,9 +6,13 @@ if [[ $status -ne 0 ]]; then
   exit 1
 fi
 
+# read properties
+. "$script_dir/config.properties"
+
 # Use spark-submit to run your application
 $SPARK_HOME/bin/spark-submit \
 	--class "org.fyrz.textclassifier.NaiveBayesClassifier" \
-	--master local[4] \
+	--master local[$CONFIG_CONCURRENCY] \
+	--executor-memory $CONFIG_EXECUTOR_MEMORY \
 	build/libs/spark-java-text-classifier-0.1-all.jar
 
