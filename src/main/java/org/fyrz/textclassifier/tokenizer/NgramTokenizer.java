@@ -16,8 +16,7 @@ import java.util.TreeMap;
 
 public class NgramTokenizer extends Analyzer {
 
-  private final Map<String, String> delimiterParams = new TreeMap<String, String>() {{
-  }};
+  private final Map<String, String> delimiterParams = new TreeMap<String, String>();
 
   private final Map<String, String> shingleParams = new TreeMap<String, String>() {{
     put("outputUnigrams", "true");
@@ -25,14 +24,18 @@ public class NgramTokenizer extends Analyzer {
     put("maxShingleSize", "2");
   }};
 
+  private final Map<String, String> removeDuplicatesParams = new TreeMap<String, String>();
+
   @Override
   protected TokenStreamComponents createComponents(final String fieldName, final Reader reader) {
     Tokenizer source = new WhitespaceTokenizer(Version.LUCENE_44, reader);
     TokenStream lowerCaseFilter = new LowerCaseFilter(Version.LUCENE_44, source);
-    TokenStream delimiterFilter = new WordDelimiterFilterFactory(delimiterParams).create(lowerCaseFilter);
-    TokenStream shingleFilter = new ShingleFilterFactory(shingleParams).create(delimiterFilter);
-    TokenStream finalFilter =  new RemoveDuplicatesTokenFilterFactory(
-        new TreeMap<String, String>()).create(shingleFilter);
+    TokenStream delimiterFilter = new WordDelimiterFilterFactory(delimiterParams).
+        create(lowerCaseFilter);
+    TokenStream shingleFilter = new ShingleFilterFactory(shingleParams).
+        create(delimiterFilter);
+    TokenStream finalFilter =  new RemoveDuplicatesTokenFilterFactory(removeDuplicatesParams).
+        create(shingleFilter);
     return new TokenStreamComponents(source, finalFilter);
   }
 }
