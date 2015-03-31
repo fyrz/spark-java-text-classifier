@@ -1,27 +1,27 @@
 package org.fyrz.textclassifier;
 
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.mllib.classification.NaiveBayes;
-import org.apache.spark.mllib.classification.NaiveBayesModel;
-import org.apache.spark.mllib.feature.ChiSqSelector;
-import org.apache.spark.mllib.feature.ChiSqSelectorModel;
-import org.apache.spark.mllib.feature.HashingTF;
-import org.apache.spark.mllib.feature.IDF;
-import org.apache.spark.mllib.regression.LabeledPoint;
-import org.fyrz.textclassifier.tokenizer.LowercaseWhitespaceTokenizer;
-import org.fyrz.textclassifier.tokenizer.NgramTokenizer;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.mllib.classification.NaiveBayes;
+import org.apache.spark.mllib.classification.NaiveBayesModel;
+import org.apache.spark.mllib.feature.HashingTF;
+import org.apache.spark.mllib.feature.IDF;
+import org.apache.spark.mllib.regression.LabeledPoint;
+import org.fyrz.textclassifier.tokenizer.NgramTokenizer;
+import scala.Tuple2;
 
 public class NaiveBayesClassifier {
 
@@ -53,7 +53,8 @@ public class NaiveBayesClassifier {
 
 
   public static void main(String[] args) {
-    final String path = "/vagrant/20_newsgroups/out";
+    final String path = "/vagrant/input.txt";
+    final String validationPath = "/vagrant/validation.txt";
 
     SparkConf conf = new SparkConf().setAppName("Naive bayes classifier.");
     JavaSparkContext sc = new JavaSparkContext(conf);
@@ -63,32 +64,65 @@ public class NaiveBayesClassifier {
     JavaRDD<String>[] splitData = rawData.randomSplit(splitRatios, 42l);
 
     JavaRDD<LabeledPoint> trainingData = splitData[0].map(
-        new LabeledTextToRDDTransformerFunction()).cache();
+        new LabeledTextToRDDTransformerFunction());
 
-    ChiSqSelector chiSqSelector = new ChiSqSelector(500);
-    final ChiSqSelectorModel chiSqSelectorModel = chiSqSelector.fit(trainingData.rdd());
+    //ChiSqSelector chiSqSelector = new ChiSqSelector(1000);
+    //final ChiSqSelectorModel chiSqSelectorModel = chiSqSelector.fit(trainingData.rdd());
 
     // reduce feature set
-    JavaRDD<LabeledPoint> reducedTrainingData = trainingData.map(new Function<LabeledPoint, LabeledPoint>() {
+    //JavaRDD<LabeledPoint> reducedTrainingData = trainingData.map(new Function<LabeledPoint, LabeledPoint>() {
+    //  @Override
+    //  public LabeledPoint call(LabeledPoint labeledPoint) throws Exception {
+    //    return new LabeledPoint(labeledPoint.label(), chiSqSelectorModel.transform(labeledPoint.features()));
+    //  }
+    //});
+
+    final NaiveBayesModel model = NaiveBayes.train(trainingData.rdd());
+
+    JavaRDD<LabeledPoint> testData = splitData[1].map(new LabeledTextToRDDTransformerFunction());
+    testData.mapToPair(new PairFunction<LabeledPoint, String, Integer>() {
       @Override
-      public LabeledPoint call(LabeledPoint labeledPoint) throws Exception {
-        return new LabeledPoint(labeledPoint.label(), chiSqSelectorModel.transform(labeledPoint.features()));
+      public Tuple2<String, Integer> call(final LabeledPoint labeledPoint) throws Exception {
+        double expectedLabel = labeledPoint.label();
+        double predictedLabel = model.predict(labeledPoint.features());
+        String key;
+        if (expectedLabel == predictedLabel) {
+          key = "TP";
+        } else {
+          key = "FN";
+        }
+        return new Tuple2<String, Integer>(key, 1);
       }
-    });
-
-    final NaiveBayesModel model = NaiveBayes.train(reducedTrainingData.rdd());
-
-    JavaRDD<LabeledPoint> testData = splitData[0].map(
-        new LabeledTextToRDDTransformerFunction()).cache();
-
-    testData.map(new Function<LabeledPoint, String>(){
+    }).reduceByKey(new Function2<Integer, Integer, Integer>() {
       @Override
-      public String call(LabeledPoint labeledPoint) throws Exception {
-        return String.format("retrieved %f, expected: %f",
-            model.predict(chiSqSelectorModel.transform(labeledPoint.features())),
-            labeledPoint.label());
+      public Integer call(final Integer v1, final Integer v2)
+          throws Exception {
+        return v1+v2;
       }
-    }).saveAsTextFile("out.txt");
+    }).saveAsTextFile("testOut");
+
+    JavaRDD<String> validationData = sc.textFile(validationPath).cache();
+    JavaRDD<LabeledPoint> valData = validationData.map(new LabeledTextToRDDTransformerFunction());
+    valData.mapToPair(new PairFunction<LabeledPoint, String, Integer>() {
+      @Override
+      public Tuple2<String, Integer> call(final LabeledPoint labeledPoint) throws Exception {
+        double expectedLabel = labeledPoint.label();
+        double predictedLabel = model.predict(labeledPoint.features());
+        String key;
+        if (expectedLabel == predictedLabel) {
+          key = "TP";
+        } else {
+          key = "FN";
+        }
+        return new Tuple2<String, Integer>(key, 1);
+      }
+    }).reduceByKey(new Function2<Integer, Integer, Integer>() {
+      @Override
+      public Integer call(final Integer v1, final Integer v2)
+          throws Exception {
+        return v1+v2;
+      }
+    }).saveAsTextFile("validationOut");
 
     sc.close();
   }
