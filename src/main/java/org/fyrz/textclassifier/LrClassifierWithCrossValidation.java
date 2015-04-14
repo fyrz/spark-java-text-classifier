@@ -22,7 +22,8 @@ import org.fyrz.textclassifier.tokenizer.SparkLuceneTokenizer;
 
 import java.io.IOException;
 
-public class NewsGroupCrossValidation {
+public class LrClassifierWithCrossValidation
+{
   public static void main(String[] args)
       throws IOException {
     final String path = "/vagrant/20_newsgroups/out";

@@ -11,7 +11,7 @@ fi
 
 # Use spark-submit to run your application
 $SPARK_HOME/bin/spark-submit \
-	--class "org.fyrz.textclassifier.NewsGroupCrossValidation" \
+	--class "org.fyrz.textclassifier.LrClassifierWithCrossValidation" \
 	--master local[$CONFIG_CONCURRENCY] \
 	--executor-memory $CONFIG_EXECUTOR_MEMORY \
 	build/libs/spark-java-text-classifier-0.1-all.jar

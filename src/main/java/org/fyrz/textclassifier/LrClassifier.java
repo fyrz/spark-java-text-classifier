@@ -17,7 +17,8 @@ import org.fyrz.textclassifier.tokenizer.SparkLuceneTokenizer;
 
 import java.io.IOException;
 
-public class NewsGroupClassifier {
+public class LrClassifier
+{
   public static void main(String[] args)
       throws IOException {
     final String path = "/vagrant/20_newsgroups/out";
