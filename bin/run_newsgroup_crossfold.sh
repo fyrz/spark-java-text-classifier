@@ -2,7 +2,7 @@
 
 script_dir="$(dirname "$0")"
 "$script_dir/validate_env.sh"
-if [[ $status -ne 0 ]]; then
+if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
