@@ -14,5 +14,6 @@ $SPARK_HOME/bin/spark-submit \
 	--class "org.fyrz.textclassifier.NaiveBayesClassifier" \
 	--master local[$CONFIG_CONCURRENCY] \
 	--executor-memory $CONFIG_EXECUTOR_MEMORY \
+	--driver-memory $CONFIG_DRIVER_MEMORY \
 	build/libs/spark-java-text-classifier-0.1-all.jar
 
