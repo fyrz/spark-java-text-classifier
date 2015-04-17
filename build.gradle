@@ -12,6 +12,7 @@ ext {
 	apacheSparkScalaVersion = '2.10'
 	apacheSparkVersion = '1.3.0'
 
+    guavaVersion = '18.0'
     junitVersion = '4.11'
     assertjVersion = '1.7.1'
 }
@@ -64,6 +65,7 @@ dependencies {
     compile("org.apache.lucene:lucene-core:$solrVersion") {
         exclude(group: "log4j", module: "log4j")
     }
+    compile("com.google.guava:guava:$guavaVersion")
 
     testCompile("commons-logging:commons-logging:$commonsloggingVersion")
     testCompile("junit:junit:$junitVersion")
