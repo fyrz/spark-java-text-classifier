@@ -22,8 +22,10 @@ import org.apache.spark.mllib.classification.NaiveBayesModel;
 import org.apache.spark.mllib.feature.HashingTF;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.regression.LabeledPoint;
+import org.fyrz.textclassifier.beans.CategoryConfidence;
 import org.fyrz.textclassifier.tokenizer.NgramTokenizer;
 import scala.Tuple2;
+import static org.fyrz.textclassifier.evaluation.NaiveBayesConfidenceHelper.calculateScoresForAllCategoriesMultiNominal;
 
 
 public class NaiveBayesClassifier {
@@ -54,39 +56,6 @@ public class NaiveBayesClassifier {
     }
   }
 
-  static double calculateScoresForAllCategoriesMultiNominal(NaiveBayesModel model, Vector testData) {
-      double predictedCategory = -1;
-      double scoreSum = 0;
-      double maxScore = Double.NEGATIVE_INFINITY;
-
-      double[] testArray = testData.toArray();
-      Map<Integer, Double> sparseMap = new HashMap<Integer, Double>();
-      for (int i = 0; i < testArray.length; i++) {
-          if (testArray[i] != 0) {
-              sparseMap.put(i, testArray[i]);
-          }
-      }
-
-      //double[] scores = new double[model.pi().length];
-
-
-      for (int i = 0; i < model.pi().length; i++) {
-          double score = 0.0;
-          for(Map.Entry<Integer, Double> entry : sparseMap.entrySet()) {
-              score += (entry.getValue() * model.theta()[i][entry.getKey()]);
-          }
-
-          score += model.pi()[i];
-          scoreSum += score;
-          if (maxScore < score) {
-              predictedCategory = model.labels()[i];
-              maxScore = score;
-          }
-      }
-
-      System.out.println("Percent: " + maxScore / (scoreSum / 100));
-      return predictedCategory;
-  }
 
 
   public static void main(String[] args) {
@@ -103,17 +72,6 @@ public class NaiveBayesClassifier {
     JavaRDD<LabeledPoint> trainingData = splitData[0].map(
         new LabeledTextToRDDTransformerFunction());
 
-    //ChiSqSelector chiSqSelector = new ChiSqSelector(1000);
-    //final ChiSqSelectorModel chiSqSelectorModel = chiSqSelector.fit(trainingData.rdd());
-
-    // reduce feature set
-    //JavaRDD<LabeledPoint> reducedTrainingData = trainingData.map(new Function<LabeledPoint, LabeledPoint>() {
-    //  @Override
-    //  public LabeledPoint call(LabeledPoint labeledPoint) throws Exception {
-    //    return new LabeledPoint(labeledPoint.label(), chiSqSelectorModel.transform(labeledPoint.features()));
-    //  }
-    //});
-
     final NaiveBayesModel model = NaiveBayes.train(trainingData.rdd());
 
     JavaRDD<LabeledPoint> testData = splitData[1].map(new LabeledTextToRDDTransformerFunction());
@@ -129,7 +87,7 @@ public class NaiveBayesClassifier {
                   key = "TP";
               }
               else {
-                  key = "FN";
+                  key = "FP";
               }
               results.add(new Tuple2<String, Integer>(key, 1));
               results.add(new Tuple2<String, Integer>(expectedLabel + " " + key, 1));
@@ -151,22 +109,26 @@ public class NaiveBayesClassifier {
       public List<Tuple2<String, Integer>> call(final LabeledPoint labeledPoint)
           throws Exception {
         List<Tuple2<String, Integer>> results = new ArrayList<>(2);
-        double expectedLabel = labeledPoint.label();
-        double predictedLabel = model.predict(labeledPoint.features());
 
-        double customLabel = calculateScoresForAllCategoriesMultiNominal(model, labeledPoint.features());
-        if (predictedLabel != customLabel) {
-          System.out.println(""+ customLabel + "!=" + predictedLabel);
-          results.add(new Tuple2<String, Integer>("xxx", 1));
+        double expectedLabel = labeledPoint.label();
+        TopNSet<CategoryConfidence> topNSet = calculateScoresForAllCategoriesMultiNominal(model, labeledPoint.features());
+
+        boolean labelFound = false;
+        for (CategoryConfidence categoryConfidence : topNSet) {
+            if (categoryConfidence.getCategory() == expectedLabel) {
+                labelFound = true;
+                break;
+            }
         }
 
         String key;
-        if (expectedLabel == predictedLabel) {
+        if (labelFound) {
           key = "TP";
         }
         else {
-          key = "FN";
+          key = "FP";
         }
+
         results.add(new Tuple2<String, Integer>(key, 1));
         results.add(new Tuple2<String, Integer>(expectedLabel + " " + key, 1));
         return results;
