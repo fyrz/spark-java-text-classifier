@@ -27,7 +27,7 @@ public class NaiveBayesConfidenceHelper
         for (int i = 0; i < model.pi().length; i++) {
             double score = 0.0;
             for(Map.Entry<Integer, Double> entry : sparseMap.entrySet()) {
-                score += (entry.getValue() * model.theta()[i][entry.getKey()]);
+                score += (entry.getValue().doubleValue() * model.theta()[i][entry.getKey().intValue()]);
             }
 
             score += model.pi()[i];
@@ -42,25 +42,47 @@ public class NaiveBayesConfidenceHelper
         return predictedCategory;
     }
 
-    public static TopNSet calculateScoresForAllCategoriesMultiNominal(NaiveBayesModel model, Vector testData) {
-        final TopNSet topNSet = new TopNSet(3);
+    public static TopNSet<CategoryConfidence> calculateScoresForAllCategoriesMultiNominal(
+        final NaiveBayesModel model, final Vector testData) {
+      return calculateScoresForAllCategoriesMultiNominal(model, testData, -1);
+    }
 
-        double[] testArray = testData.toArray();
-        Map<Integer, Double> sparseMap = new HashMap<Integer, Double>();
-        for (int i = 0; i < testArray.length; i++) {
-            if (testArray[i] != 0) {
-                sparseMap.put(i, testArray[i]);
-            }
+    public static TopNSet<CategoryConfidence> calculateScoresForAllCategoriesMultiNominal(
+        final NaiveBayesModel model, final Vector testData, final double threshold) {
+      TopNSet<CategoryConfidence> topNSet = new TopNSet<>(3);
+      double scoreSum = 0;
+
+      double[] testArray = testData.toArray();
+      Map<Integer, Double> sparseMap = new HashMap<Integer, Double>();
+      for (int i = 0; i < testArray.length; i++) {
+        if (testArray[i] != 0) {
+          sparseMap.put(i, testArray[i]);
+        }
+      }
+
+      for (int i = 0; i < model.pi().length; i++) {
+        double score = 0.0;
+        for (Map.Entry<Integer, Double> entry : sparseMap.entrySet()) {
+          score += (entry.getValue().doubleValue() * model.theta()[i][entry.getKey().intValue()]);
         }
 
-        for (int i = 0; i < model.pi().length; i++) {
-            double score = 0.0;
-            for (Map.Entry<Integer, Double> entry : sparseMap.entrySet()) {
-                score += (entry.getValue() * model.theta()[i][entry.getKey()]);
+        score += model.pi()[i];
+        scoreSum += score;
+        topNSet.add(new CategoryConfidence(model.labels()[i], score));
+      }
+
+      // filter topN set using threshold
+      if (threshold != -1) {
+          TopNSet<CategoryConfidence> tmpTopNSet = new TopNSet<>(3);
+          for(CategoryConfidence categoryConfidence : topNSet) {
+            if ((categoryConfidence.getConfidence() / (scoreSum / 100)) > threshold) {
+              tmpTopNSet.add(new CategoryConfidence(
+                  categoryConfidence.getCategory(),
+                  (categoryConfidence.getConfidence() / (scoreSum / 100))));
             }
-            score += model.pi()[i];
-            topNSet.add(new CategoryConfidence(model.labels()[i], score));
-        }
-        return topNSet;
+          }
+          topNSet = tmpTopNSet;
+      }
+      return topNSet;
     }
 }
