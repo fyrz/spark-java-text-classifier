@@ -50,7 +50,6 @@ public class NaiveBayesClassifier {
           tokenList.add(term.toString());
         }
       } catch (IOException e) {
-        // TODO handle java.io.IOException
       }
       return new LabeledPoint(label, hashingTF.transform(tokenList));
     }
@@ -90,9 +89,6 @@ public class NaiveBayesClassifier {
                 results.add(new Tuple2<String, Integer>("FP "+String.format("%.2f", categoryConfidence.getConfidence()), 1));
             }
         }
-
-        //results.add(new Tuple2<String, Integer>(key, 1));
-        //results.add(new Tuple2<String, Integer>(expectedLabel + " " + key, 1));
         return results;
       }
   }
