@@ -19,7 +19,7 @@ import java.util.List;
 public class SparkLuceneTokenizer extends Tokenizer {
 
   @Override
-  public Function1<String, Seq<String>> createTransformFunc(final ParamMap paramMap) {
+  public Function1<String, Seq<String>> createTransformFunc() {
     return new TextTokenizerFunction();
   }
 
@@ -28,9 +28,8 @@ public class SparkLuceneTokenizer extends Tokenizer {
     public Seq<String> apply(final String s) {
       List<String> tokenList = new ArrayList<String>();
       LowercaseWhitespaceTokenizer lowercaseWhitespaceTokenizer = new LowercaseWhitespaceTokenizer();
-      Reader reader = new StringReader(s);
-      try {
-        TokenStream tokenStream = lowercaseWhitespaceTokenizer.tokenStream("contents", reader);
+
+      try(Reader reader = new StringReader(s); TokenStream tokenStream = lowercaseWhitespaceTokenizer.tokenStream("contents", reader)) {
         CharTermAttribute term = tokenStream.getAttribute(CharTermAttribute.class);
 
         tokenStream.reset();
@@ -38,7 +37,7 @@ public class SparkLuceneTokenizer extends Tokenizer {
           tokenList.add(term.toString());
         }
       } catch (IOException e) {
-        // TODO handle java.io.IOException
+          // ignore
       }
       return JavaConversions.asScalaBuffer(tokenList);
     }
