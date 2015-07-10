@@ -11,7 +11,7 @@ public class NaiveBayesModelTrainer
     public void train(final String modelPath, final JavaRDD<String> trainingData)
     {
         JavaRDD<LabeledPoint> labeledTrainingData = trainingData.map(
-            new ClassifierUtilities.LabeledTextToRDDTransformerFunction());
+            new ClassifierUtilities.LabeledTextToLabeledPointRDDFunction());
         final NaiveBayesModel model = NaiveBayes.train(labeledTrainingData.rdd());
         model.save(trainingData.context(), modelPath);
     }

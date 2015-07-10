@@ -11,7 +11,9 @@ import org.fyrz.textclassifier.classifcation.NaiveBayesClassifier;
 import org.fyrz.textclassifier.classifcation.NaiveBayesModelTrainer;
 
 /**
+ * Naive-Bayes evaluation application
  *
+ * <p>Uses legacy ML-API</p>
  */
 public class NaiveBayesEvaluationApplication {
 
@@ -20,7 +22,7 @@ public class NaiveBayesEvaluationApplication {
         // -- Prepare
         final String trainingDataPath = "/vagrant/input.txt";
         final String validationDataPath = "/vagrant/validation.txt";
-        final String modelPath = "/vagrant/testModel";
+        final String modelPath = "testModel";
 
         SparkConf conf = new SparkConf().setAppName("Naive bayes classifier.");
         JavaSparkContext sc = new JavaSparkContext(conf);
@@ -32,8 +34,7 @@ public class NaiveBayesEvaluationApplication {
 
         // -- Classification of data
         JavaRDD<String> validationData = sc.textFile(validationDataPath).cache();
-        JavaRDD<LabeledPoint> valData = validationData.map(new ClassifierUtilities.LabeledTextToRDDTransformerFunction());
-
+        JavaRDD<LabeledPoint> valData = validationData.map(new ClassifierUtilities.LabeledTextToLabeledPointRDDFunction());
         JavaPairRDD<String, Integer> classifiedData = valData.flatMapToPair(new NaiveBayesClassifier(valData.context(), modelPath));
 
         // -- Aggregate classification results for presentation
