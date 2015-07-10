@@ -1,4 +1,4 @@
-package org.fyrz.textclassifier;
+package org.fyrz.textclassifier.collections;
 
 import java.util.TreeSet;
 

@@ -1,6 +1,7 @@
-package org.fyrz.textclassifier;
+package org.fyrz.textclassifier.collections;
 
 import org.fyrz.textclassifier.beans.CategoryConfidence;
+import org.fyrz.textclassifier.collections.TopNSet;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
