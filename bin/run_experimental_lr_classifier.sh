@@ -15,5 +15,5 @@ $SPARK_HOME/bin/spark-submit \
 	--master local[$CONFIG_CONCURRENCY] \
 	--executor-memory $CONFIG_EXECUTOR_MEMORY \
 	--driver-memory $CONFIG_DRIVER_MEMORY \
-	build/libs/spark-java-text-classifier-0.1-all.jar
+	build/libs/spark-java-text-classifier-$CONFIG_CLASSFIER_VERSION-all.jar
 
