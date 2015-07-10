@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.apache.spark.mllib.classification.NaiveBayesModel;
 import org.apache.spark.mllib.linalg.Vector;
-import org.fyrz.textclassifier.TopNSet;
+import org.fyrz.textclassifier.collections.TopNSet;
 import org.fyrz.textclassifier.beans.CategoryConfidence;
 
 

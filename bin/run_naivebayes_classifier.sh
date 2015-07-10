@@ -11,7 +11,7 @@ fi
 
 # Use spark-submit to run your application
 $SPARK_HOME/bin/spark-submit \
-	--class "org.fyrz.textclassifier.NaiveBayesClassifier" \
+	--class "org.fyrz.textclassifier.NaiveBayesEvaluationApplication" \
 	--master local[$CONFIG_CONCURRENCY] \
 	--executor-memory $CONFIG_EXECUTOR_MEMORY \
 	--driver-memory $CONFIG_DRIVER_MEMORY \
