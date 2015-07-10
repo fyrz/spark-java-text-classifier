@@ -1,4 +1,4 @@
-package org.fyrz.textclassifier;
+package org.fyrz.textclassifier.experimental;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -8,11 +8,13 @@ import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineModel;
 import org.apache.spark.ml.PipelineStage;
 import org.apache.spark.ml.classification.LogisticRegression;
+import org.apache.spark.ml.classification.LogisticRegressionModel;
 import org.apache.spark.ml.feature.HashingTF;
 import org.apache.spark.ml.feature.Tokenizer;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
 import org.fyrz.textclassifier.beans.LabeledDocument;
+import org.fyrz.textclassifier.classifcation.ClassifierUtilities;
 import org.fyrz.textclassifier.tokenizer.SparkLuceneTokenizer;
 
 import java.io.IOException;
@@ -29,13 +31,7 @@ public class LrClassifier
 
     JavaRDD<String> rawData = sc.textFile(path).cache();
 
-    JavaRDD<LabeledDocument> labeledData = rawData.map(
-        new Function<String, LabeledDocument>() {
-          public LabeledDocument call(String s) {
-            String[] parts = s.split("|||");
-            return new LabeledDocument(Double.valueOf(parts[0]), parts[1]);
-          }
-        }).cache();
+    JavaRDD<LabeledDocument> labeledData = rawData.map(new ClassifierUtilities.LabeledTextToLabeledDocumentRDDFunction()).cache();
 
     DataFrame trainingData = jsql.createDataFrame(labeledData, LabeledDocument.class);
 
@@ -55,5 +51,6 @@ public class LrClassifier
 
     // Fit the pipeline to training documents.
     PipelineModel model = pipeline.fit(trainingData);
+
   }
 }

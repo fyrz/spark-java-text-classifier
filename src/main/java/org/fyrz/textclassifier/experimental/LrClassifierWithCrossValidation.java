@@ -1,4 +1,4 @@
-package org.fyrz.textclassifier;
+package org.fyrz.textclassifier.experimental;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -12,12 +12,14 @@ import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
 import org.apache.spark.ml.feature.HashingTF;
 import org.apache.spark.ml.feature.Tokenizer;
 import org.apache.spark.ml.tuning.CrossValidator;
+import org.apache.spark.ml.tuning.CrossValidatorModel;
 import org.apache.spark.ml.tuning.ParamGridBuilder;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.fyrz.textclassifier.beans.Document;
 import org.fyrz.textclassifier.beans.LabeledDocument;
+import org.fyrz.textclassifier.classifcation.ClassifierUtilities;
 import org.fyrz.textclassifier.tokenizer.SparkLuceneTokenizer;
 
 import java.io.IOException;
@@ -37,22 +39,7 @@ public class LrClassifierWithCrossValidation
     JavaRDD<String>[] splitData = rawData.randomSplit(splitRatios, 42l);
 
     JavaRDD<LabeledDocument> labeledData = splitData[0].map(
-        new Function<String, LabeledDocument>() {
-          public LabeledDocument call(String s) {
-            String[] parts = s.split("[|]{3}");
-
-            Double label = 0d;
-            if (Double.valueOf(parts[0]).equals(1d)) {
-              label = 1d;
-            }
-
-            if (parts.length == 1) {
-              return new LabeledDocument(label, "");
-            }
-            return new LabeledDocument(label, parts[1]);
-          }
-        }
-    ).cache();
+        new ClassifierUtilities.LabeledTextToLabeledDocumentRDDFunction()).cache();
 
     DataFrame trainingData = jsql.createDataFrame(labeledData, LabeledDocument.class);
 
@@ -84,19 +71,11 @@ public class LrClassifierWithCrossValidation
         setEvaluator(new BinaryClassificationEvaluator());
 
     // Trained model
-    Model model = cv.fit(trainingData);
+    Model model = cv.fit(trainingData).bestModel();
 
+    // Classify data using the model
     JavaRDD<Document> unlabeledData = splitData[1].map(
-        new Function<String, Document>() {
-          public Document call(String s) {
-            String[] parts = s.split("[|]{3}");
-            if (parts.length == 1) {
-              return new Document("");
-            }
-            return new Document(parts[1]);
-          }
-        }
-    ).cache();
+        new ClassifierUtilities.LabeledTextToUnlabeledDocumentRDDFunction()).cache();
     DataFrame testData = jsql.createDataFrame(unlabeledData, Document.class);
 
     DataFrame predictions = model.transform(testData);
