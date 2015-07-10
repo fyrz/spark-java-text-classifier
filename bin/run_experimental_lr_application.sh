@@ -11,7 +11,7 @@ fi
 
 # Use spark-submit to run your application
 $SPARK_HOME/bin/spark-submit \
-	--class "org.fyrz.textclassifier.experimental.LrClassifier" \
+	--class "org.fyrz.textclassifier.experimental.LrEvaluationApplication" \
 	--master local[$CONFIG_CONCURRENCY] \
 	--executor-memory $CONFIG_EXECUTOR_MEMORY \
 	--driver-memory $CONFIG_DRIVER_MEMORY \

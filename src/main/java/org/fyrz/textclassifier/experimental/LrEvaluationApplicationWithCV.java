@@ -24,7 +24,7 @@ import org.fyrz.textclassifier.tokenizer.SparkLuceneTokenizer;
 
 import java.io.IOException;
 
-public class LrClassifierWithCrossValidation
+public class LrEvaluationApplicationWithCV
 {
   public static void main(String[] args)
       throws IOException {

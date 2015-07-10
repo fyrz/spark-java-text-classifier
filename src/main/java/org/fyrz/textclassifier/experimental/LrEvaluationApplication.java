@@ -19,7 +19,7 @@ import org.fyrz.textclassifier.tokenizer.SparkLuceneTokenizer;
 
 import java.io.IOException;
 
-public class LrClassifier
+public class LrEvaluationApplication
 {
   public static void main(String[] args)
       throws IOException {
