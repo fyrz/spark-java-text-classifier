@@ -24,6 +24,13 @@ import org.fyrz.textclassifier.tokenizer.SparkLuceneTokenizer;
 
 import java.io.IOException;
 
+/**
+ * Logistic regression evaluation application
+ *
+ * <p>Uses new Pipeline API & cross validation.</p>
+ *
+ * <p>Experimental: Models cannot be saved at the moment.</p>
+ */
 public class LrEvaluationApplicationWithCV
 {
   public static void main(String[] args)
